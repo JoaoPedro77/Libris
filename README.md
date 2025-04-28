@@ -1,4 +1,4 @@
-```markdown
+
 # 📚 Libris - Sistema de Gestão Bibliotecária
 
 <div align="center">
@@ -62,7 +62,7 @@ npm install
 
 # Execute em modo desenvolvimento
 npm start
-
+````
 
 ## 📌 Próximos Passos
 
@@ -85,4 +85,3 @@ Este projeto está sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para d
 <div align="center">
   Desenvolvido com ❤️ :)</a>
 </div>
-```
