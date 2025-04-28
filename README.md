@@ -41,7 +41,7 @@
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" width="40" alt="JavaScript"/>
       <br>JavaScript
     </td>
-    <td align="center"> <img src="https://select2.org/images/select2-logo.png" width="40" alt="Select2"/> <br>Select2 </td>
+    <td align="center"> <img src="https://avatars.githubusercontent.com/u/8077542?s=200&v=4" width="40" alt="Select2"/> <br>Select2 </td>
     
   </tr>
 </table>
