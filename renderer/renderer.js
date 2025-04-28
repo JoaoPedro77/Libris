@@ -1,415 +1,169 @@
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-//             dom, menu e navbars,login, forms de cadastros 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 1. CONSTANTES E VARIÁVEIS GLOBAIS 🛵
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// DOMContentLoaded: Quando o DOM estiver pronto
+/* 
+ * Variáveis globais que armazenam os dados da aplicação.
+ * Inicializadas com dados do localStorage ou valores padrão.
+ */
+
+// Lista de empréstimos
+let lista_emprestimos = JSON.parse(localStorage.getItem('emprestimos')) || [
+    {
+        usuario: "jorge da silva",
+        livro: "JavaScript para Iniciantes",
+        livro_id: "001",
+        matricula: "20230101",
+        dataEmprestimo: "01/04/2025",
+        dataDevolucao: "15/04/2025",
+        dataDevolvido: "14/04/2025",
+        multa: 0,
+        status: "devolvido"
+    },
+    {
+        usuario: "Maria Souza",
+        livro: "Aprendendo React",
+        livro_id: "002",
+        matricula: "20230102",
+        dataEmprestimo: "26/04/2025",
+        dataDevolucao: "10/05/2025",
+        dataDevolvido: null,
+        multa: 0,
+        status: "ativo"
+    },
+    {
+        usuario: "marcelo rogerio algusto da silva souza silva silva",
+        livro: "Python para Todos",
+        livro_id: "003",
+        matricula: "20230103",
+        dataEmprestimo: "10/04/2025",
+        dataDevolucao: "24/04/2025",
+        dataDevolvido: null,
+        multa: 10,
+        status: "atrasado"
+    }
+];
+
+// Lista de usuários
+let lista_usuarios = JSON.parse(localStorage.getItem('usuarios')) || [
+    { matricula: "20230101", nome: "jorge da silva", curso: "Engenharia de Software", telefone: "11999999999", email: "jorgee@example.com" },
+    { matricula: "20230102", nome: "Maria Souza", curso: "Sistemas de Informação", telefone: "11888888888", email: "mariaa@example.com" },
+    { matricula: "20230103", nome: "marcelo rogerio algusto da silva souza silva silva", curso: "Análise e Desenvolvimento de Sistemas", telefone: "11777777777", email: "mrassss@example.com" }
+];
+
+// Lista de livros
+let lista_livros = JSON.parse(localStorage.getItem('livros')) || [
+    { id_livro: "001", titulo: "JavaScript para Iniciantes", autor: "John Doe", isbn: "1234567890", ano_publicado: 2020, id_categoria: "12", disponibilidade: "Disponível" },
+    { id_livro: "002", titulo: "Aprendendo React", autor: "Jane Smith", isbn: "0987654321", ano_publicado: 2021, id_categoria: "12", disponibilidade: "Indisponível" },
+    { id_livro: "003", titulo: "Python para Todos", autor: "Pedro Santos", isbn: "1122334455", ano_publicado: 2019, id_categoria: "12", disponibilidade: "Indisponível" }
+];
+
+// Lista de bibliotecários
+let bibliotecarios = JSON.parse(localStorage.getItem('bibliotecarios')) || [
+    { login: "a", senha: "a", nome: "Ana Silva", matricula: "12345"},
+    { login: "admin", senha: "admin", nome: "admin", matricula: "00000"},
+    
+];
+
+
+// Mapeamento de categorias de livros
+const categoriasMap = {
+    '1': 'Física',
+    '2': 'Química',
+    '3': 'Biologia',
+    '4': 'Matemática',
+    '5': 'Literatura',
+    '6': 'Português',
+    '7': 'Inglês',
+    '8': 'Geografia',
+    '9': 'História',
+    '10': 'Filosofia',
+    '11': 'Sociologia',
+    '12': 'Tecnologia e Computação',
+    '13': 'Técnicos/Profissionalizantes',
+    '14': 'Revistas',
+    '15': 'Projeto de Vida',
+    '16': 'Educação Física',
+    '17': 'Artes'
+};
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 2. FUNÇÕES DE INICIALIZAÇÃO E CONTROLE DA APLICAÇÃO
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Evento principal que é disparado quando o DOM está totalmente carregado
+ * Configura toda a aplicação, carrega dados e define os listeners
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
-    //define o tipo da navbar 
+    // Carrega a navbar apropriada baseada no parâmetro 'tipo' da URL
     const tipo = getQueryParam("tipo");
-    const params = new URLSearchParams(window.location.search);
-
     if (tipo) {
         loadNavbarWithTipo();
     } else {
         loadNavbar();
     }
 
+    // Configura todos os formulários da aplicação
+    setupForms();
     
-
+    // Configura a página atual baseada no tipo
+    setupPage(tipo);
     
-    const emprestimoForm = document.querySelector(".emprestimo-form");
-
-if (emprestimoForm) {
-    emprestimoForm.addEventListener("submit", function(e) {
-        e.preventDefault();
-
-        // Capturar elementos do formulário
-        const selectUsuario = document.getElementById("select-usuario");
-        const selectLivro = document.getElementById("select-livro");
-        const dataEmprestimoInput = document.getElementById("data-emprestimo");
-
-        // Capturar valores
-        const matriculaSelecionada = selectUsuario.value;
-        const livroSelecionado = selectLivro.value;
-        const dataInput = new Date(dataEmprestimoInput.value);
-        const dataEmprestimo = new Date(dataInput.getTime() + dataInput.getTimezoneOffset() * 60000);
-
-        // Procurar usuário e livro nas listas
-        const usuario = lista_usuarios.find(u => u.matricula === matriculaSelecionada);
-        const livro = lista_livros.find(l => l.id_livro === livroSelecionado);
-
-        if (!usuario || !livro) {
-            window.electronAPI.showErrorDialog('Erro', 'Usuário ou livro não encontrado!');
-            return;
-        }
-
-        // Calcular data de devolução (14 dias depois)
-        const dataDevolucao = new Date(dataEmprestimo);
-        dataDevolucao.setDate(dataEmprestimo.getDate() + 14);
-
-        // Criar objeto do empréstimo
-        const novoEmprestimo = {
-            usuario: usuario.nome,
-            livro: livro.titulo,
-            livro_id: livro.id_livro,
-            matricula: usuario.matricula,
-            dataEmprestimo: formatarData(dataEmprestimo),
-            dataDevolucao: formatarData(dataDevolucao),
-            dataDevolvido: null,
-            multa: 0,
-            status: "ativo"
-        };
-
-        // Confirmar com o usuário antes de registrar
-        window.electronAPI.confirmarAcao(
-            'Confirmar Empréstimo', 
-            `Deseja registrar o empréstimo de ${livro.titulo} para ${usuario.nome}?`,
-            `Data de devolução: ${formatarData(dataDevolucao)}`
-        ).then(confirmado => {
-            if (confirmado) {
-                // Atualizar localStorage
-                let emprestimos = JSON.parse(localStorage.getItem('emprestimos')) || [];
-                emprestimos.push(novoEmprestimo);
-                localStorage.setItem('emprestimos', JSON.stringify(emprestimos));
-
-                // Atualizar status do livro
-                livro.disponibilidade = "Indisponível";
-                localStorage.setItem('livros', JSON.stringify(lista_livros));
-
-                window.electronAPI.showMessageDialog(
-                    'Sucesso', 
-                    `Empréstimo registrado para ${usuario.nome}!`
-                );
-
-                // Limpar formulário
-                goTo("index.html");
-            }
-        }).catch(error => {
-            console.error('Erro ao processar empréstimo:', error);
-            window.electronAPI.showErrorDialog(
-                'Erro', 
-                'Ocorreu um erro ao registrar o empréstimo.'
-            );
-        });
-    });
-}
-
-
-    const livroForm = document.querySelector(".book-form");
-
-if (livroForm) {
-    document.getElementById("id_livro")?.addEventListener("input", function() {
-        validarIdLivro(this);
-        atualizarEstadoBotaoLivro();
-    });
-
-    livroForm.addEventListener("submit", function(e) {
-        if (!validarIdLivro(document.getElementById("id_livro"))) {
-            e.preventDefault();
-            return;
-        }
-
-        e.preventDefault();
-        const livroData = {
-            id_livro: document.getElementById("id_livro").value.trim(),
-            titulo: document.getElementById("titulo").value.trim(),
-            autor: document.getElementById("autor").value.trim(),
-            isbn: document.getElementById("isbn").value.trim(),
-            ano_publicado: parseInt(document.getElementById("ano_publicado").value),
-            id_categoria: document.getElementById("id_categoria").value.trim(),
-            disponibilidade: "Disponível" // <--- Adicionado aqui
-        };
-
-        lista_livros.push(livroData);
-        localStorage.setItem('livros', JSON.stringify(lista_livros));
-        goTo("index.html"); // Ou onde você quiser
-    });
-}
-
-    function atualizarEstadoBotaoLivro() {
-        const submitBtn = document.getElementById('submit-btn');
-        if (submitBtn) {
-            submitBtn.disabled = !livroForm.checkValidity();
-        }
-    }
-
-    const userForm = document.querySelector(".user-form");
-
-    // Função de validação de matrícula
-    function validarMatricula(input) {
-        const matricula = input.value.trim();
-        const submitBtn = document.getElementById('submit-btn');
-        
-        if (!matricula) return true; // Se vazio, deixa o required nativo tratar
-        
-        // Verifica duplicata
-        const matriculaExistente = lista_usuarios.some(u => u.matricula === matricula);
-        
-        if (matriculaExistente) {
-            input.setCustomValidity("Matrícula já cadastrada!");
-            input.reportValidity(); // Mostra o balão de erro
-            return false;
-        } else {
-            input.setCustomValidity(""); // Limpa erros
-            return true;
-        }
-    }
-
-    function validarIdLivro(input) {
-        const idLivro = input.value.trim();
-        if (!idLivro) return true;
-
-        const idExistente = lista_livros.some(l => l.id_livro === idLivro);
-
-        if (idExistente) {
-            input.setCustomValidity("ID do livro já cadastrado!");
-            input.reportValidity();
-            return false;
-        } else {
-            input.setCustomValidity("");
-            return true;
-        }
-    }
-
-    // Configuração do formulário
-    if (userForm) {
-        // Validação em tempo real
-        document.getElementById("matricula")?.addEventListener("input", function() {
-            validarMatricula(this);
-            atualizarEstadoBotao();
-        });
-
-        // Validação no submit
-        userForm.addEventListener("submit", function(e) {
-            if (!validarMatricula(document.getElementById("matricula"))) {
-                e.preventDefault();
-                return;
-            }
-            
-            e.preventDefault();
-            const userData = {
-                nome: document.getElementById("nome").value.trim(),
-                matricula: document.getElementById("matricula").value.trim(),
-                curso: document.getElementById("curso").value.trim(),
-                telefone: document.getElementById("telefone").value.trim(),
-                email: document.getElementById("email").value.trim()
-            };
-            
-
-            //da push na lista. ver depois com o banco de dados
-            lista_usuarios.push(userData);
-            localStorage.setItem('usuarios', JSON.stringify(lista_usuarios));
-            goTo("index.html");
-        });
-    }
-
-    // Função auxiliar para atualizar o botão
-    function atualizarEstadoBotao() {
-        const submitBtn = document.getElementById('submit-btn');
-        if (submitBtn) {
-            submitBtn.disabled = !userForm.checkValidity();
-        }
-    }
-
-    /////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////
-
-    function validarMatriculaBibliotecario(input) {
-        const matriculaBibliotecario = input.value.trim();
-        
-        if (!matriculaBibliotecario) return true; // Se vazio, deixa o required nativo tratar
-        
-        // Verifica duplicata
-        const matriculaBilioExistente = bibliotecarios.some(u => u.matricula === matriculaBibliotecario);
-        
-        if (matriculaBilioExistente) {
-            input.setCustomValidity("Matrícula já cadastrada!");
-            input.reportValidity(); // Mostra o balão de erro
-            return false;
-        } else {
-            input.setCustomValidity(""); // Limpa erros
-            return true;
-        }
-    }
-
-    const bibliotecarioForm = document.querySelector(".bibliotecario-form");
-    if (bibliotecarioForm) {
-        // Validação em tempo real
-        document.getElementById("matricula-bibliotecario")?.addEventListener("input", function() {
-            validarMatriculaBibliotecario(this);
-            atualizarEstadoBotaoBibliotecario();
-        });
-
-        // Validação no submit
-        bibliotecarioForm.addEventListener("submit", function(e) {
-            if (!validarMatriculaBibliotecario(document.getElementById("matricula-bibliotecario"))) {
-                e.preventDefault();
-                return;
-            }
-            
-            e.preventDefault();
-            const userData = {
-                login: document.getElementById("login").value.trim(),
-                senha: document.getElementById("senha").value.trim(),
-                nome: document.getElementById("nome_bibliotecario").value.trim(),
-                matricula: document.getElementById("matricula-bibliotecario").value.trim(),
-            };
-            
-
-            //da push na lista. ver depois com o banco de dados
-            bibliotecarios.push(userData);
-            localStorage.setItem('bibliotecarios', JSON.stringify(bibliotecarios));
-            goTo("index.html");
-            
-        });
-    }
-
-    // Função auxiliar para atualizar o botão
-    function atualizarEstadoBotaoBibliotecario() {
-        const submitBtn = document.getElementById('submit-btn');
-        if (submitBtn) {
-            submitBtn.disabled = !bibliotecarioForm.checkValidity();
-        }
-    }
+    // Carrega os dados iniciais
+    carregarDadosIniciais();
     
-    
-
-
-    // parte do formulário de login
-    //
-    const loginForm = document.getElementById("login-form");
-
-    if (loginForm) {
-        loginForm.addEventListener("submit", function(e) {
-            e.preventDefault(); // Impede que o formulário seja enviado de forma padrão
-            
-            //descomentar pra limpar tudo
-            //localStorage.clear();
-
-            // Captura os valores dos campos de login e senha
-            const login = document.getElementById("login").value;
-            const senha = document.getElementById("senha").value;
-            const errorMsg = document.getElementById("login-error");
-
-            // Debug: Verifica os valores de login e senha
-            console.log("Login:", login); // Verifica se o valor de login está correto
-            console.log("Senha:", senha); // Verifica se o valor de senha está correto
-
-            // Verifica se os campos de login e senha não estão vazios
-            if (!login || !senha) {
-                console.log("Campos vazios!");
-                errorMsg.textContent = "Por favor, preencha todos os campos.";
-                errorMsg.style.display = "block"; // Exibe a mensagem de erro
-                return; // Interrompe a execução do código
-            }
-
-            // Verifica se o login e senha correspondem a algum usuário
-            const usuarioValido = bibliotecarios.find(u => u.login === login && u.senha === senha);
-
-            if (usuarioValido) {
-                console.log("Usuário válido!"); // Confirma que o usuário foi encontrado
-                // Marca o usuário como logado no localStorage
-                window.localStorage.setItem('loggedIn', true);
-                // Usuário válido, redireciona para a página inicial
-                goTo("index.html");
-            } else {
-                console.log("Login ou senha inválidos!"); // Confirma que o login não foi encontrado
-                // Exibe mensagem de erro se o login for inválido
-                errorMsg.textContent = "Login ou senha inválidos.";
-                errorMsg.style.display = "block"; // Garante que o erro seja visível
-            }
-        });
-    } else {
-        console.error("Formulário de login não encontrado.");
-    }
-
-    // Funcionalidade do botão de logout
-    const logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", function() {
-            // Limpa o item do localStorage para remover o estado de login
-            window.localStorage.removeItem('loggedIn');
-            console.log("Usuário deslogado");
-
-            // Redireciona para a página de login após logout
-            window.location.assign("login.html");; // Isso pode ser substituído por um método específico para Electron, se necessário
-        });
-    }
-
-    
-    carregarEmprestimos(); // Adiciona carregamento dos empréstimos também
-    
-
-
-    // Esconde todos primeiro
-    const emprestimos = document.getElementById("emprestimos-main");
-    const usuarios = document.getElementById("usuarios-main");
-    const livros = document.getElementById("livros-main");
-
-    if (emprestimos || usuarios || livros) {
-        if (emprestimos) emprestimos.style.display = "none";
-        if (usuarios) usuarios.style.display = "none";
-        if (livros) livros.style.display = "none";
-
-        if (tipo === "usuarios" && usuarios) {
-            usuarios.style.display = "flex";
-        } else if (tipo === "emprestimos" && emprestimos) {
-            emprestimos.style.display = "flex";
-        } else if (tipo === "livros" && livros) {
-            livros.style.display = "flex";
-        }
-    }
-
-    // PÁGINA DE EMPRÉSTIMO E DEVOLUÇÃO
-    const emprestar = document.getElementById("emprestar-main");
-    const devolver = document.getElementById("devolver-main");
-
-    if (emprestar || devolver) {
-        if (emprestar) emprestar.style.display = "none";
-        if (devolver) devolver.style.display = "none";
-
-        if (tipo === "emprestar" && emprestar) {
-            emprestar.style.display = "flex";
-        } else if (tipo === "devolver" && devolver) {
-            devolver.style.display = "flex";
-        }
-    }
-
-    // PÁGINA DE CADASTROS
-    const usuario = document.getElementById("usuario-main");
-    const livro = document.getElementById("livro-main");
-    const bibliotecario = document.getElementById("bibliotecario-main");
-
-    if (usuario || livro || bibliotecario) {
-        if (usuario) usuario.style.display = "none";
-        if (livro) livro.style.display = "none";
-        if (bibliotecario) bibliotecario.style.display = "none";
-        
-        if (tipo === "usuario" && usuario) {
-            usuario.style.display = "flex";
-        } else if (tipo === "livro" && livro) {
-            livro.style.display = "flex";
-        } else if (tipo === "bibliotecario" && bibliotecario) {
-            bibliotecario.style.display = "flex";
-        }
-    }
-
-    
-
-
+    // Carrega estatísticas do dashboard
     carregarEstatisticas();
 });
 
-
-// Função para pegar parâmetros da URL (tipo=...)
-function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
+/**
+ * Configura todos os formulários da aplicação
+ * Adiciona event listeners e validações
+ */
+function setupForms() {
+    setupEmprestimoForm();
+    setupLivroForm();
+    setupUsuarioForm();
+    setupBibliotecarioForm();
+    setupLoginForm();
 }
 
+/**
+ * Configura a exibição da página baseada no tipo
+ */
+function setupPage(tipo) {
+    // Esconde todas as seções principais primeiro
+    hideAllSections();
+    
+    // Mostra a seção apropriada baseada no tipo
+    showSectionByType(tipo);
+}
+
+/**
+ * Carrega os dados iniciais necessários
+ */
+function carregarDadosIniciais() {
+    carregarEmprestimos();
+    carregarUsuarios();
+    carregarLivros();
+    carregarBibliotecarios();
+    carregarEmprestimosParaDevolucao();
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 3. FUNÇÕES DE NAVBAR E CONTROLE DE JANELA
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Carrega a navbar básica
+ */
 async function loadNavbar() {
     try {
         const response = await fetch('navbar.html');
@@ -440,7 +194,10 @@ async function loadNavbar() {
         console.error('Erro ao carregar navbar:', error);
     }
 }
-// Função para carregar a navbar que usa o tipo (emprestimos, usuarios, etc)
+
+/**
+ * Carrega a navbar com tipo específico (com botão de voltar e título)
+ */
 async function loadNavbarWithTipo() {
     const tipo = getQueryParam("tipo");
 
@@ -481,7 +238,9 @@ async function loadNavbarWithTipo() {
     }
 }
 
-// Configura os botões da janela
+/**
+ * Configura os botões de controle da janela (minimizar, fechar, arrastar)
+ */
 function setupWindowButtons() {
     document.getElementById('minimize-btn')?.addEventListener('click', () => {
         window.electronAPI.minimize();
@@ -496,61 +255,337 @@ function setupWindowButtons() {
     });
 }
 
-// Função para redirecionar
-function goTo(url) {
-    window.location.href = url;
-    carregarEstatisticas();
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 4. FUNÇÕES DE FORMULÁRIOS
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Configura o formulário de empréstimo
+ */
+function setupEmprestimoForm() {
+    const emprestimoForm = document.querySelector(".emprestimo-form");
+    if (emprestimoForm) {
+        emprestimoForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+    
+            // Capturar elementos do formulário
+            const selectUsuario = document.getElementById("select-usuario");
+            const selectLivro = document.getElementById("select-livro");
+            const dataEmprestimoInput = document.getElementById("data-emprestimo");
+    
+            // Capturar valores
+            const matriculaSelecionada = selectUsuario.value;
+            const livroSelecionado = selectLivro.value;
+            const dataInput = new Date(dataEmprestimoInput.value);
+            const dataEmprestimo = new Date(dataInput.getTime() + dataInput.getTimezoneOffset() * 60000);
+    
+            // Procurar usuário e livro nas listas
+            const usuario = lista_usuarios.find(u => u.matricula === matriculaSelecionada);
+            const livro = lista_livros.find(l => l.id_livro === livroSelecionado);
+    
+            if (!usuario || !livro) {
+                window.electronAPI.showErrorDialog('Erro', 'Usuário ou livro não encontrado!');
+                return;
+            }
+    
+            // Calcular data de devolução (14 dias depois)
+            const dataDevolucao = new Date(dataEmprestimo);
+            dataDevolucao.setDate(dataEmprestimo.getDate() + 14);
+    
+            // Criar objeto do empréstimo
+            const novoEmprestimo = {
+                usuario: usuario.nome,
+                livro: livro.titulo,
+                livro_id: livro.id_livro,
+                matricula: usuario.matricula,
+                dataEmprestimo: formatarData(dataEmprestimo),
+                dataDevolucao: formatarData(dataDevolucao),
+                dataDevolvido: null,
+                multa: 0,
+                status: "ativo"
+            };
+    
+            // Confirmar com o usuário antes de registrar
+            window.electronAPI.confirmarAcao(
+                'Confirmar Empréstimo', 
+                `Deseja registrar o empréstimo de ${livro.titulo} para ${usuario.nome}?`,
+                `Data de devolução: ${formatarData(dataDevolucao)}`
+            ).then(confirmado => {
+                if (confirmado) {
+                    // Atualizar localStorage
+                    let emprestimos = JSON.parse(localStorage.getItem('emprestimos')) || [];
+                    emprestimos.push(novoEmprestimo);
+                    localStorage.setItem('emprestimos', JSON.stringify(emprestimos));
+    
+                    // Atualizar status do livro
+                    livro.disponibilidade = "Indisponível";
+                    localStorage.setItem('livros', JSON.stringify(lista_livros));
+    
+                    window.electronAPI.showMessageDialog(
+                        'Sucesso', 
+                        `Empréstimo registrado para ${usuario.nome}!`
+                    );
+    
+                    // Limpar formulário
+                    goTo("index.html");
+                }
+            }).catch(error => {
+                console.error('Erro ao processar empréstimo:', error);
+                window.electronAPI.showErrorDialog(
+                    'Erro', 
+                    'Ocorreu um erro ao registrar o empréstimo.'
+                );
+            });
+        });
+    }
+}
+
+/**
+ * Configura o formulário de livro
+ */
+function setupLivroForm() {
+    const livroForm = document.querySelector(".book-form");
+    if (livroForm) {
+        document.getElementById("id_livro")?.addEventListener("input", function() {
+            validarIdLivro(this);
+            atualizarEstadoBotaoLivro();
+        });
+    
+        livroForm.addEventListener("submit", function(e) {
+            if (!validarIdLivro(document.getElementById("id_livro"))) {
+                e.preventDefault();
+                return;
+            }
+    
+            e.preventDefault();
+            const livroData = {
+                id_livro: document.getElementById("id_livro").value.trim(),
+                titulo: document.getElementById("titulo").value.trim(),
+                autor: document.getElementById("autor").value.trim(),
+                isbn: document.getElementById("isbn").value.trim(),
+                ano_publicado: parseInt(document.getElementById("ano_publicado").value),
+                id_categoria: document.getElementById("id_categoria").value.trim(),
+                disponibilidade: "Disponível" // <--- Adicionado aqui
+            };
+    
+            lista_livros.push(livroData);
+            localStorage.setItem('livros', JSON.stringify(lista_livros));
+            goTo("index.html"); // Ou onde você quiser
+        });
+    }
+}
+
+/**
+ * Configura o formulário de usuário
+ */
+function setupUsuarioForm() {
+    const userForm = document.querySelector(".user-form");
+    if (userForm) {
+        // Validação em tempo real
+        document.getElementById("matricula")?.addEventListener("input", function() {
+            validarMatricula(this);
+            atualizarEstadoBotao();
+        });
+
+        // Validação no submit
+        userForm.addEventListener("submit", function(e) {
+            if (!validarMatricula(document.getElementById("matricula"))) {
+                e.preventDefault();
+                return;
+            }
+            
+            e.preventDefault();
+            const userData = {
+                nome: document.getElementById("nome").value.trim(),
+                matricula: document.getElementById("matricula").value.trim(),
+                curso: document.getElementById("curso").value.trim(),
+                telefone: document.getElementById("telefone").value.trim(),
+                email: document.getElementById("email").value.trim()
+            };
+            
+
+            //da push na lista. ver depois com o banco de dados
+            lista_usuarios.push(userData);
+            localStorage.setItem('usuarios', JSON.stringify(lista_usuarios));
+            goTo("index.html");
+        });
+    }
+}
+
+/**
+ * Configura o formulário de bibliotecário
+ */
+function setupBibliotecarioForm() {
+    const bibliotecarioForm = document.querySelector(".bibliotecario-form");
+    if (bibliotecarioForm) {
+        // Validação em tempo real
+        document.getElementById("matricula-bibliotecario")?.addEventListener("input", function() {
+            validarMatriculaBibliotecario(this);
+            atualizarEstadoBotaoBibliotecario();
+        });
+
+        // Validação no submit
+        bibliotecarioForm.addEventListener("submit", function(e) {
+            if (!validarMatriculaBibliotecario(document.getElementById("matricula-bibliotecario"))) {
+                e.preventDefault();
+                return;
+            }
+            
+            e.preventDefault();
+            const userData = {
+                login: document.getElementById("login").value.trim(),
+                senha: document.getElementById("senha").value.trim(),
+                nome: document.getElementById("nome_bibliotecario").value.trim(),
+                matricula: document.getElementById("matricula-bibliotecario").value.trim(),
+            };
+            
+
+            //da push na lista. ver depois com o banco de dados
+            bibliotecarios.push(userData);
+            localStorage.setItem('bibliotecarios', JSON.stringify(bibliotecarios));
+            goTo("index.html");
+            
+        });
+    }
+}
+
+/**
+ * Configura o formulário de login
+ */
+function setupLoginForm() {
+    const loginForm = document.getElementById("login-form");
+    if (loginForm) {
+        loginForm.addEventListener("submit", function(e) {
+            e.preventDefault(); // Impede que o formulário seja enviado de forma padrão
+            
+            //descomentar pra limpar tudo
+            //localStorage.clear();
+
+            // Captura os valores dos campos de login e senha
+            const login = document.getElementById("login").value;
+            const senha = document.getElementById("senha").value;
+            const errorMsg = document.getElementById("login-error");
+
+            // Debug: Verifica os valores de login e senha
+            console.log("Login:", login); // Verifica se o valor de login está correto
+            console.log("Senha:", senha); // Verifica se o valor de senha está correto
+
+            // Verifica se os campos de login e senha não estão vazios
+            if (!login || !senha) {
+                console.log("Campos vazios!");
+                errorMsg.textContent = "Por favor, preencha todos os campos.";
+                errorMsg.style.display = "block"; // Exibe a mensagem de erro
+                return; // Interrompe a execução do código
+            }
+
+            // Verifica se o login e senha correspondem a algum usuário
+            const usuarioValido = bibliotecarios.find(u => u.login === login && u.senha === senha);
+
+            if (usuarioValido) {
+                console.log("Usuário válido!"); // Confirma que o usuário foi encontrado
+                // Marca o usuário como logado no localStorage
+                window.localStorage.setItem('loggedIn', true);
+                // Usuário válido, redireciona para a página inicial
+                goTo("index.html");
+            } else {
+                console.log("Login ou senha inválidos!"); // Confirma que o login não foi encontrado
+                // Exibe mensagem de erro se o login for inválido
+                errorMsg.textContent = "Login ou senha inválidos.";
+                errorMsg.style.display = "block"; // Garante que o erro seja visível
+            }
+        });
+    } 
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", function() {
+            // Limpa o item do localStorage para remover o estado de login
+            window.localStorage.removeItem('loggedIn');
+            console.log("Usuário deslogado");
+
+            // Redireciona para a página de login após logout
+            window.location.assign("login.html");; // Isso pode ser substituído por um método específico para Electron, se necessário
+        });
+    }
 }
 
 
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-//                daqui pra baixo, consulta emprestimos
+// 5. FUNÇÕES DE VALIDAÇÃO
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// Função para criar cards de empréstimos de forma dinâmica
-// Variável global para armazenar os empréstimos
-let lista_emprestimos = JSON.parse(localStorage.getItem('emprestimos')) || [
-    {
-        usuario: "jorge da silva",
-        livro: "JavaScript para Iniciantes",
-        livro_id: "001",
-        matricula: "20230101",
-        dataEmprestimo: "01/04/2025",
-        dataDevolucao: "15/04/2025",
-        dataDevolvido: "14/04/2025",
-        multa: 0,
-        status: "devolvido"
-    },
-    {
-        usuario: "Maria Souza",
-        livro: "Aprendendo React",
-        livro_id: "002",
-        matricula: "20230102",
-        dataEmprestimo: "26/04/2025",
-        dataDevolucao: "10/05/2025",
-        dataDevolvido: null,
-        multa: 0,
-        status: "ativo"
-    },
-    {
-        usuario: "marcelo rogerio algusto da silva souza silva silva",
-        livro: "Python para Todos",
-        livro_id: "003",
-        matricula: "20230103",
-        dataEmprestimo: "10/04/2025",
-        dataDevolucao: "24/04/2025",
-        dataDevolvido: null,
-        multa: 10,
-        status: "atrasado"
+/**
+ * Valida se uma matrícula já existe
+ */
+function validarMatricula(input) {
+    const matricula = input.value.trim();
+    const submitBtn = document.getElementById('submit-btn');
+    
+    if (!matricula) return true; // Se vazio, deixa o required nativo tratar
+    
+    // Verifica duplicata
+    const matriculaExistente = lista_usuarios.some(u => u.matricula === matricula);
+    
+    if (matriculaExistente) {
+        input.setCustomValidity("Matrícula já cadastrada!");
+        input.reportValidity(); // Mostra o balão de erro
+        return false;
+    } else {
+        input.setCustomValidity(""); // Limpa erros
+        return true;
     }
-];
+}
+
+/**
+ * Valida se um ID de livro já existe
+ */
+function validarIdLivro(input) {
+    const idLivro = input.value.trim();
+    if (!idLivro) return true;
+
+    const idExistente = lista_livros.some(l => l.id_livro === idLivro);
+
+    if (idExistente) {
+        input.setCustomValidity("ID do livro já cadastrado!");
+        input.reportValidity();
+        return false;
+    } else {
+        input.setCustomValidity("");
+        return true;
+    }
+}
+
+/**
+ * Valida se uma matrícula de bibliotecário já existe
+ */
+function validarMatriculaBibliotecario(input) {
+    const matriculaBibliotecario = input.value.trim();
+    
+    if (!matriculaBibliotecario) return true; // Se vazio, deixa o required nativo tratar
+    
+    // Verifica duplicata
+    const matriculaBilioExistente = bibliotecarios.some(u => u.matricula === matriculaBibliotecario);
+    
+    if (matriculaBilioExistente) {
+        input.setCustomValidity("Matrícula já cadastrada!");
+        input.reportValidity(); // Mostra o balão de erro
+        return false;
+    } else {
+        input.setCustomValidity(""); // Limpa erros
+        return true;
+    }
+}
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 6. FUNÇÕES DE CARREGAMENTO DE DADOS
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Função principal para carregar empréstimos
+
+/**
+ * Carrega e exibe os empréstimos
+ */
 function carregarEmprestimos() {
     const todosEmprestimos = document.getElementById('todos-emprestimos');
     const emprestimosAtrasados = document.getElementById('emprestimos-atrasados-lista');
@@ -635,132 +670,9 @@ function carregarEmprestimos() {
     });
 }
 
-// Função para atualizar status dos empréstimos
-function atualizarStatusEmprestimos() {
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    lista_emprestimos.forEach(emprestimo => {
-        if (emprestimo.status === 'devolvido') return;
-
-        const dataDevolucao = parseData(emprestimo.dataDevolucao);
-        
-        if (emprestimo.dataDevolvido) {
-            emprestimo.status = 'devolvido';
-        } else if (hoje > dataDevolucao) {
-            emprestimo.status = 'atrasado';
-            // Calcula multa (R$ 1 por dia de atraso)
-            const diasAtraso = Math.floor((hoje - dataDevolucao) / (1000 * 60 * 60 * 24));
-            emprestimo.multa = diasAtraso * 1;
-        } else {
-            emprestimo.status = 'ativo';
-        }
-    });
-
-    salvarEmprestimos();
-}
-
-// Função para registrar devolução
-function registrarDevolucao(matricula, livroId) {
-    const emprestimo = lista_emprestimos.find(e => 
-        e.matricula === matricula && 
-        e.livro_id === livroId && 
-        e.status !== 'devolvido'
-    );
-
-    if (!emprestimo) {
-        window.electronAPI.showErrorDialog('Erro', 'Empréstimo não encontrado!');
-        return false;
-    }
-
-    const hoje = formatarData(new Date());
-    emprestimo.dataDevolvido = hoje;
-    emprestimo.status = 'devolvido';
-    
-    // Atualizar disponibilidade do livro
-    const livro = lista_livros.find(l => l.id_livro === livroId);
-    if (livro) {
-        livro.disponibilidade = "Disponível";
-        localStorage.setItem('livros', JSON.stringify(lista_livros));
-    }
-
-    salvarEmprestimos();
-    carregarEmprestimos();
-    
-    window.electronAPI.showMessageDialog(
-        'Sucesso', 
-        `Livro "${emprestimo.livro}" devolvido por ${emprestimo.usuario}!`
-    );
-    
-    return true;
-}
-
-// Função para formatar data
-function formatarData(data) {
-    const dia = String(data.getDate()).padStart(2, '0');
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
-    const ano = data.getFullYear();
-    return `${dia}/${mes}/${ano}`;
-}
-
-// Funções de busca (mantidas como no seu código original)
-function filtrarEmprestimos() {
-    const searchInput = document.getElementById('searchInput').value.toLowerCase();
-    const todosEmprestimos = document.getElementById('todos-emprestimos');
-    const cards = todosEmprestimos.getElementsByClassName('emprestimo-card');
-    
-    for (let i = 0; i < cards.length; i++) {
-        const card = cards[i];
-        const usuario = card.querySelector('.emprestimo-header strong').textContent.toLowerCase();
-        const livro = card.querySelector('.livro').textContent.toLowerCase();
-        
-        if (usuario.includes(searchInput) || livro.includes(searchInput)) {
-            card.style.display = '';
-        } else {
-            card.style.display = 'none';
-        }
-    }
-}
-
-function filtrarEmprestimosAtrasados() {
-    const searchInputo = document.getElementById('searchInputo').value.toLowerCase();
-    const emprestimosAtrasados = document.getElementById('emprestimos-atrasados-lista');
-    
-    if (!emprestimosAtrasados) {
-        console.error('Elemento "emprestimos-atrasados-lista" não encontrado');
-        return;
-    }
-    
-    const cards = emprestimosAtrasados.getElementsByClassName('emprestimo-card');
-    
-    for (let i = 0; i < cards.length; i++) {
-        const card = cards[i];
-        const usuario = card.querySelector('.emprestimo-header strong')?.textContent.toLowerCase() || '';
-        const livro = card.querySelector('.livro')?.textContent.toLowerCase() || '';
-        
-        if (usuario.includes(searchInputo) || livro.includes(searchInputo)) {
-            card.style.display = '';
-        } else {
-            card.style.display = 'none';
-        }
-    }
-}
-
-// Carrega os empréstimos quando a página é carregada
-document.addEventListener('DOMContentLoaded', carregarEmprestimos);
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-//                daqui pra baixo, consulta emprestimos
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// No topo do arquivo, substitua todas as outras declarações
-let lista_usuarios = JSON.parse(localStorage.getItem('usuarios')) || [
-    { matricula: "20230101", nome: "jorge da silva", curso: "Engenharia de Software", telefone: "11999999999", email: "jorgee@example.com" },
-    { matricula: "20230102", nome: "Maria Souza", curso: "Sistemas de Informação", telefone: "11888888888", email: "mariaa@example.com" },
-    { matricula: "20230103", nome: "marcelo rogerio algusto da silva souza silva silva", curso: "Análise e Desenvolvimento de Sistemas", telefone: "11777777777", email: "mrassss@example.com" }
-];
-
-//yeet
-  
+/**
+ * Carrega e exibe os usuários
+ */
 function carregarUsuarios() {
     const lista = document.getElementById('lista-usuarios');
     if (!lista) return;
@@ -798,102 +710,9 @@ function carregarUsuarios() {
         lista.appendChild(li);
     });
 }
-
-function apagarUsuario(index) {
-    window.electronAPI.confirmarApagar().then(confirmado => {
-        if (confirmado) {
-            lista_usuarios.splice(index, 1);
-            localStorage.setItem('usuarios', JSON.stringify(lista_usuarios));
-            carregarUsuarios();
-        }
-    }).catch(error => {
-        console.error('Erro ao confirmar a exclusão:', error);
-    });
-}
-  
-function mostrarDetalhes(usuario) {
-    document.getElementById('det-matricula').textContent = usuario.matricula;
-    document.getElementById('det-nome').textContent = usuario.nome;
-    document.getElementById('det-curso').textContent = usuario.curso;
-    document.getElementById('det-telefone').textContent = usuario.telefone;
-    document.getElementById('det-email').textContent = usuario.email;
-}
-
-function filtrarUsuarios() {
-    const termo = document.getElementById('searchUsuario').value.toLowerCase();
-    const lista = document.getElementById('lista-usuarios');
-    lista.innerHTML = '';
-
-    lista_usuarios
-      .filter(usuario => usuario.nome.toLowerCase().includes(termo) || usuario.matricula.includes(termo)) // Filtra pelo nome ou matrícula
-      .forEach(usuario => {
-        const li = document.createElement('li');
-        const icon = document.createElement('i');
-        icon.classList.add('ph-duotone', 'ph-identification-card');
-        li.appendChild(icon);
-        li.appendChild(document.createTextNode(` ${usuario.matricula} - ${usuario.nome}`));
-        li.onclick = () => mostrarDetalhes(usuario);
-        lista.appendChild(li);
-      });
-}
-
-document.addEventListener('DOMContentLoaded', carregarUsuarios);
-
-function filtrarLivros() {
-    const termo = document.getElementById('searchLivro').value.toLowerCase();
-    const lista = document.getElementById('lista-livros');
-    lista.innerHTML = '';
-
-    lista_livros
-      .filter(livro => livro.titulo.toLowerCase().includes(termo) || livro.id_livro.includes(termo))
-      .forEach(livro => {
-        const li = document.createElement('li');   
-        const icon = document.createElement('i');
-        icon.classList.add('ph-duotone', 'ph-book');
-        li.appendChild(icon);
-        li.appendChild(document.createTextNode(` ${livro.id_livro} - ${livro.titulo}`));
-        li.onclick = () => mostrarDetalhesLivro(livro);
-        lista.appendChild(li);
-      });
-}
-  
-const categoriasMap = {
-    '1': 'Física',
-    '2': 'Química',
-    '3': 'Biologia',
-    '4': 'Matemática',
-    '5': 'Literatura',
-    '6': 'Português',
-    '7': 'Inglês',
-    '8': 'Geografia',
-    '9': 'História',
-    '10': 'Filosofia',
-    '11': 'Sociologia',
-    '12': 'Tecnologia e Computação',
-    '13': 'Técnicos/Profissionalizantes',
-    '14': 'Revistas',
-    '15': 'Projeto de Vida',
-    '16': 'Educação Física',
-    '17': 'Artes'
-};
-
-function contarLivrosPorCategoria() {
-    const contagem = {};
-    lista_livros.forEach(livro => {
-        if (!contagem[livro.id_categoria]) {
-            contagem[livro.id_categoria] = 0;
-        }
-        contagem[livro.id_categoria]++;
-    });
-    return contagem;
-}
-
-  let lista_livros = JSON.parse(localStorage.getItem('livros')) || [
-    { id_livro: "001", titulo: "JavaScript para Iniciantes", autor: "John Doe", isbn: "1234567890", ano_publicado: 2020, id_categoria: "12", disponibilidade: "Disponível" },
-    { id_livro: "002", titulo: "Aprendendo React", autor: "Jane Smith", isbn: "0987654321", ano_publicado: 2021, id_categoria: "12", disponibilidade: "Indisponível" },
-    { id_livro: "003", titulo: "Python para Todos", autor: "Pedro Santos", isbn: "1122334455", ano_publicado: 2019, id_categoria: "12", disponibilidade: "Indisponível" }
-];
-
+/**
+ * Carrega e exibe os livros
+ */
 function carregarLivros() {
     const lista = document.getElementById('lista-livros');
     if (!lista) return;
@@ -932,63 +751,9 @@ function carregarLivros() {
     });
 }
 
-function apagarLivro(index) {
-    window.electronAPI.confirmarApagar().then(confirmado => {
-        if (confirmado) {
-            lista_livros.splice(index, 1);
-            localStorage.setItem('livros', JSON.stringify(lista_livros));
-            carregarLivros();
-        }
-    }).catch(error => {
-        console.error('Erro ao confirmar a exclusão:', error);
-    });
-}
-
-
-function mostrarDetalhesLivro(livro) {
-    document.getElementById('det-id_livro').textContent = livro.id_livro;
-    document.getElementById('det-titulo').textContent = livro.titulo;
-    document.getElementById('det-autor').textContent = livro.autor;
-    document.getElementById('det-isbn').textContent = livro.isbn;
-    document.getElementById('det-ano_publicado').textContent = livro.ano_publicado;
-    
-    // Mostra o nome da categoria ao invés do ID
-    const nomeCategoria = categoriasMap[livro.id_categoria] || 'Categoria Desconhecida';
-    document.getElementById('det-id_categoria').textContent = nomeCategoria;
-    
-    document.getElementById('det-disponibilidade').textContent = livro.disponibilidade;
-    
-    // Mostra a quantidade de livros nesta categoria
-    const contagem = contarLivrosPorCategoria();
-    const quantidade = contagem[livro.id_categoria] || 0;
-    document.getElementById('det-quantidade').textContent = `Quantidade na categoria: ${quantidade}`;
-}
-  
-function filtrarLivros() {
-    const termo = document.getElementById('searchLivro').value.toLowerCase();
-    const lista = document.getElementById('lista-livros');
-    lista.innerHTML = '';
-
-    lista_livros
-      .filter(livro => livro.titulo.toLowerCase().includes(termo) || livro.id_livro.includes(termo)) // Corrigido para usar lista_livros
-      .forEach(livro => {
-        const li = document.createElement('li');
-        const icon = document.createElement('i');
-        icon.classList.add('ph-duotone', 'ph-book');
-        li.appendChild(icon);
-        li.appendChild(document.createTextNode(` ${livro.id_livro} - ${livro.titulo}`));
-        li.onclick = () => mostrarDetalhesLivro(livro);
-        lista.appendChild(li);
-      });
-}
-  document.addEventListener('DOMContentLoaded', carregarLivros);
-  
-  let bibliotecarios = JSON.parse(localStorage.getItem('bibliotecarios')) || [
-    { login: "a", senha: "a", nome: "Ana Silva", matricula: "12345"},
-    { login: "admin", senha: "admin", nome: "admin", matricula: "00000"},
-    
-];
-
+/**
+ * Carrega e exibe os bibliotecários
+ */
 function carregarBibliotecarios() {
     const lista = document.getElementById('listinha-bibliotecarios');
     if (!lista) return;
@@ -1026,61 +791,9 @@ function carregarBibliotecarios() {
     });
 }
 
-
-document.addEventListener('DOMContentLoaded', carregarBibliotecarios);
-
-function apagarBibliotecario(index) {
-    // Chama o IPC para perguntar se o usuário quer realmente apagar
-    window.electronAPI.confirmarApagar().then(confirmado => {
-        if (confirmado) {
-            bibliotecarios.splice(index, 1); // Remove o bibliotecário
-            localStorage.setItem('bibliotecarios', JSON.stringify(bibliotecarios)); // Atualiza o localStorage
-            carregarBibliotecarios(); // Atualiza a interface
-        }
-    }).catch(error => {
-        console.error('Erro ao confirmar a exclusão:', error);
-    });
-}
-
-//
-
-
-
-// Função para preencher o select de usuários
-function preencherSelectUsuarios() {
-    const selectUsuario = document.getElementById('select-usuario');
-
-    lista_usuarios.forEach(usuario => {
-        const option = document.createElement('option');
-        option.value = usuario.matricula;
-        option.textContent = `${usuario.nome} - ${usuario.matricula}`;
-        selectUsuario.appendChild(option);
-    });
-}
-
-// Função para preencher o select de livros disponíveis
-function preencherSelectLivros() {
-    const selectLivro = document.getElementById('select-livro');
-
-    lista_livros.forEach(livro => {
-        if (livro.disponibilidade === "Disponível") {
-            const option = document.createElement('option');
-            option.value = livro.id_livro;
-            option.textContent = `${livro.titulo} (${livro.id_livro})`;
-            selectLivro.appendChild(option);
-        }
-    });
-}
-
-
-document.addEventListener('DOMContentLoaded', preencherSelectUsuarios);
-document.addEventListener('DOMContentLoaded', preencherSelectLivros);
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-// Carrega empréstimos ativos para devolução
+/**
+ * Carrega empréstimos ativos para a tela de devolução
+ */
 function carregarEmprestimosParaDevolucao() {
     const listaEmprestimos = document.getElementById('lista-emprestimos-ativos');
     if (!listaEmprestimos) return;
@@ -1129,7 +842,43 @@ function carregarEmprestimosParaDevolucao() {
     document.getElementById('searchDevolucao')?.addEventListener('input', filtrarEmprestimosDevolucao);
 }
 
-// Função para registrar devolução
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 7. FUNÇÕES DE MANIPULAÇÃO DE DADOS
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Atualiza o status dos empréstimos (ativo, atrasado, devolvido)
+ */
+function atualizarStatusEmprestimos() {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    lista_emprestimos.forEach(emprestimo => {
+        if (emprestimo.status === 'devolvido') return;
+
+        const dataDevolucao = parseData(emprestimo.dataDevolucao);
+        
+        if (emprestimo.dataDevolvido) {
+            emprestimo.status = 'devolvido';
+        } else if (hoje > dataDevolucao) {
+            emprestimo.status = 'atrasado';
+            // Calcula multa (R$ 1 por dia de atraso)
+            const diasAtraso = Math.floor((hoje - dataDevolucao) / (1000 * 60 * 60 * 24));
+            emprestimo.multa = diasAtraso * 1;
+        } else {
+            emprestimo.status = 'ativo';
+        }
+    });
+
+    salvarEmprestimos();
+}
+
+/**
+ * Registra a devolução de um livro
+ */
 async function registrarDevolucao(matricula, livroId) {
     try {
         const confirmado = await window.electronAPI.confirmarAcao(
@@ -1175,7 +924,10 @@ async function registrarDevolucao(matricula, livroId) {
     }
 }
 
-// Função para extender prazo
+
+/**
+ * Estende o prazo de um empréstimo
+ */
 async function extenderPrazo(matricula, livroId) {
     try {
         const confirmado = await window.electronAPI.confirmarAcao(
@@ -1220,7 +972,107 @@ async function extenderPrazo(matricula, livroId) {
         window.electronAPI.showErrorDialog('Erro', 'Ocorreu um erro ao extender o prazo.');
     }
 }
-// Função para filtrar empréstimos na tela de devolução
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 8. FUNÇÕES DE FILTRO E BUSCA
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Filtra a lista de empréstimos
+ */
+function filtrarEmprestimos() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const todosEmprestimos = document.getElementById('todos-emprestimos');
+    const cards = todosEmprestimos.getElementsByClassName('emprestimo-card');
+    
+    for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        const usuario = card.querySelector('.emprestimo-header strong').textContent.toLowerCase();
+        const livro = card.querySelector('.livro').textContent.toLowerCase();
+        
+        if (usuario.includes(searchInput) || livro.includes(searchInput)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    }
+}
+
+
+/**
+ * Filtra a lista de empréstimos atrasados
+ */
+function filtrarEmprestimosAtrasados() {
+    const searchInputo = document.getElementById('searchInputo').value.toLowerCase();
+    const emprestimosAtrasados = document.getElementById('emprestimos-atrasados-lista');
+    
+    if (!emprestimosAtrasados) {
+        console.error('Elemento "emprestimos-atrasados-lista" não encontrado');
+        return;
+    }
+    
+    const cards = emprestimosAtrasados.getElementsByClassName('emprestimo-card');
+    
+    for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        const usuario = card.querySelector('.emprestimo-header strong')?.textContent.toLowerCase() || '';
+        const livro = card.querySelector('.livro')?.textContent.toLowerCase() || '';
+        
+        if (usuario.includes(searchInputo) || livro.includes(searchInputo)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Filtra a lista de usuários
+ */
+function filtrarUsuarios() {
+    const termo = document.getElementById('searchUsuario').value.toLowerCase();
+    const lista = document.getElementById('lista-usuarios');
+    lista.innerHTML = '';
+
+    lista_usuarios
+      .filter(usuario => usuario.nome.toLowerCase().includes(termo) || usuario.matricula.includes(termo)) // Filtra pelo nome ou matrícula
+      .forEach(usuario => {
+        const li = document.createElement('li');
+        const icon = document.createElement('i');
+        icon.classList.add('ph-duotone', 'ph-identification-card');
+        li.appendChild(icon);
+        li.appendChild(document.createTextNode(` ${usuario.matricula} - ${usuario.nome}`));
+        li.onclick = () => mostrarDetalhes(usuario);
+        lista.appendChild(li);
+      });
+}
+
+/**
+ * Filtra a lista de livros
+ */
+function filtrarLivros() {
+    const termo = document.getElementById('searchLivro').value.toLowerCase();
+    const lista = document.getElementById('lista-livros');
+    lista.innerHTML = '';
+
+    lista_livros
+      .filter(livro => livro.titulo.toLowerCase().includes(termo) || livro.id_livro.includes(termo)) // Corrigido para usar lista_livros
+      .forEach(livro => {
+        const li = document.createElement('li');
+        const icon = document.createElement('i');
+        icon.classList.add('ph-duotone', 'ph-book');
+        li.appendChild(icon);
+        li.appendChild(document.createTextNode(` ${livro.id_livro} - ${livro.titulo}`));
+        li.onclick = () => mostrarDetalhesLivro(livro);
+        lista.appendChild(li);
+      });
+}
+
+/**
+ * Filtra empréstimos na tela de devolução
+ */
 function filtrarEmprestimosDevolucao() {
     const termo = document.getElementById('searchDevolucao').value.toLowerCase();
     const itens = document.querySelectorAll('#lista-emprestimos-ativos .emprestimo-item');
@@ -1232,9 +1084,31 @@ function filtrarEmprestimosDevolucao() {
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 9. FUNÇÕES AUXILIARES
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * Obtém um parâmetro da URL
+ */
+function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+}
 
+/**
+ * Redireciona para uma URL
+ */
+function goTo(url) {
+    window.location.href = url;
+    carregarEstatisticas();
+}
+
+
+/**
+ * Formata uma data no formato DD/MM/AAAA
+ */
 function formatarData(data) {
     const dia = String(data.getDate()).padStart(2, '0');
     const mes = String(data.getMonth() + 1).padStart(2, '0');
@@ -1242,21 +1116,113 @@ function formatarData(data) {
     return `${dia}/${mes}/${ano}`;
 }
 
+/**
+ * Converte uma string de data no formato DD/MM/AAAA para objeto Date
+ */
 function parseData(dataStr) {
     const [dia, mes, ano] = dataStr.split('/');
     return new Date(ano, mes - 1, dia);
 }
 
+/**
+ * Salva os empréstimos no localStorage
+ */
 function salvarEmprestimos() {
     localStorage.setItem('emprestimos', JSON.stringify(lista_emprestimos));
 }
 
-// Carrega a tela quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', carregarEmprestimosParaDevolucao);
+/**
+ * Conta livros por categoria para exibição de estatísticas
+ */
+function contarLivrosPorCategoria() {
+    const contagem = {};
+    lista_livros.forEach(livro => {
+        if (!contagem[livro.id_categoria]) {
+            contagem[livro.id_categoria] = 0;
+        }
+        contagem[livro.id_categoria]++;
+    });
+    return contagem;
+}
+
+/**
+ * Preenche o select de usuários no formulário de empréstimo
+ */
+function preencherSelectUsuarios() {
+    const selectUsuario = document.getElementById('select-usuario');
+
+    lista_usuarios.forEach(usuario => {
+        const option = document.createElement('option');
+        option.value = usuario.matricula;
+        option.textContent = `${usuario.nome} - ${usuario.matricula}`;
+        selectUsuario.appendChild(option);
+    });
+}
 
 
+/**
+ * Preenche o select de livros disponíveis no formulário de empréstimo
+ */
+function preencherSelectLivros() {
+    const selectLivro = document.getElementById('select-livro');
 
-// Carrega as estatísticas do dashboard
+    lista_livros.forEach(livro => {
+        if (livro.disponibilidade === "Disponível") {
+            const option = document.createElement('option');
+            option.value = livro.id_livro;
+            option.textContent = `${livro.titulo} (${livro.id_livro})`;
+            selectLivro.appendChild(option);
+        }
+    });
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 10. FUNÇÕES DE EXIBIÇÃO DE DETALHES
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Mostra detalhes de um usuário
+ */
+function mostrarDetalhes(usuario) {
+    document.getElementById('det-matricula').textContent = usuario.matricula;
+    document.getElementById('det-nome').textContent = usuario.nome;
+    document.getElementById('det-curso').textContent = usuario.curso;
+    document.getElementById('det-telefone').textContent = usuario.telefone;
+    document.getElementById('det-email').textContent = usuario.email;
+}
+
+/**
+ * Mostra detalhes de um livro
+ */
+function mostrarDetalhesLivro(livro) {
+    document.getElementById('det-id_livro').textContent = livro.id_livro;
+    document.getElementById('det-titulo').textContent = livro.titulo;
+    document.getElementById('det-autor').textContent = livro.autor;
+    document.getElementById('det-isbn').textContent = livro.isbn;
+    document.getElementById('det-ano_publicado').textContent = livro.ano_publicado;
+    
+    // Mostra o nome da categoria ao invés do ID
+    const nomeCategoria = categoriasMap[livro.id_categoria] || 'Categoria Desconhecida';
+    document.getElementById('det-id_categoria').textContent = nomeCategoria;
+    
+    document.getElementById('det-disponibilidade').textContent = livro.disponibilidade;
+    
+    // Mostra a quantidade de livros nesta categoria
+    const contagem = contarLivrosPorCategoria();
+    const quantidade = contagem[livro.id_categoria] || 0;
+    document.getElementById('det-quantidade').textContent = `Quantidade na categoria: ${quantidade}`;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 11. FUNÇÕES DE ESTATÍSTICAS E DASHBOARD
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Carrega e exibe as estatísticas do dashboard
+ */
 function carregarEstatisticas() {
 
     const statsContainer = document.getElementById('total-livros');
@@ -1316,3 +1282,142 @@ function carregarEstatisticas() {
     });
 }
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 12. FUNÇÕES DE GERENCIAMENTO DE SEÇÕES
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Esconde todas as seções principais
+ */
+function hideAllSections() {
+    // Seções de consulta
+    const emprestimos = document.getElementById("emprestimos-main");
+    const usuarios = document.getElementById("usuarios-main");
+    const livros = document.getElementById("livros-main");
+    
+    // Seções de operação
+    const emprestar = document.getElementById("emprestar-main");
+    const devolver = document.getElementById("devolver-main");
+    
+    // Seções de cadastro
+    const usuario = document.getElementById("usuario-main");
+    const livro = document.getElementById("livro-main");
+    const bibliotecario = document.getElementById("bibliotecario-main");
+
+    // Esconde todas as seções
+    if (emprestimos) emprestimos.style.display = "none";
+    if (usuarios) usuarios.style.display = "none";
+    if (livros) livros.style.display = "none";
+    if (emprestar) emprestar.style.display = "none";
+    if (devolver) devolver.style.display = "none";
+    if (usuario) usuario.style.display = "none";
+    if (livro) livro.style.display = "none";
+    if (bibliotecario) bibliotecario.style.display = "none";
+}
+
+/**
+ * Mostra a seção apropriada baseada no tipo
+ */
+function showSectionByType(tipo) {
+    // Primeiro escondemos todas as seções
+    hideAllSections();
+    
+    // Depois mostramos apenas a seção correspondente ao tipo
+    switch(tipo) {
+        case "emprestimos":
+            document.getElementById("emprestimos-main").style.display = "flex";
+            break;
+        case "usuarios":
+            document.getElementById("usuarios-main").style.display = "flex";
+            break;
+        case "livros":
+            document.getElementById("livros-main").style.display = "flex";
+            break;
+        case "emprestar":
+            document.getElementById("emprestar-main").style.display = "flex";
+            preencherSelectLivros();
+            preencherSelectUsuarios();
+            break;
+        case "devolver":
+            document.getElementById("devolver-main").style.display = "flex";
+            break;
+        case "usuario":
+            document.getElementById("usuario-main").style.display = "flex";
+            break;
+        case "livro":
+            document.getElementById("livro-main").style.display = "flex";
+            break;
+        case "bibliotecario":
+            document.getElementById("bibliotecario-main").style.display = "flex";
+            break;
+        default:
+            // Nenhuma seção específica para mostrar (página inicial)
+            break;
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 13. de atualizar e apagar
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function atualizarEstadoBotaoLivro() {
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = !livroForm.checkValidity();
+    }
+}
+
+function atualizarEstadoBotao() {
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = !userForm.checkValidity();
+    }
+}
+
+function atualizarEstadoBotaoBibliotecario() {
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = !bibliotecarioForm.checkValidity();
+    }
+}
+
+function apagarUsuario(index) {
+    window.electronAPI.confirmarApagar().then(confirmado => {
+        if (confirmado) {
+            lista_usuarios.splice(index, 1);
+            localStorage.setItem('usuarios', JSON.stringify(lista_usuarios));
+            carregarUsuarios();
+        }
+    }).catch(error => {
+        console.error('Erro ao confirmar a exclusão:', error);
+    });
+}
+
+function apagarLivro(index) {
+    window.electronAPI.confirmarApagar().then(confirmado => {
+        if (confirmado) {
+            lista_livros.splice(index, 1);
+            localStorage.setItem('livros', JSON.stringify(lista_livros));
+            carregarLivros();
+        }
+    }).catch(error => {
+        console.error('Erro ao confirmar a exclusão:', error);
+    });
+}
+
+function apagarBibliotecario(index) {
+    // Chama o IPC para perguntar se o usuário quer realmente apagar
+    window.electronAPI.confirmarApagar().then(confirmado => {
+        if (confirmado) {
+            bibliotecarios.splice(index, 1); // Remove o bibliotecário
+            localStorage.setItem('bibliotecarios', JSON.stringify(bibliotecarios)); // Atualiza o localStorage
+            carregarBibliotecarios(); // Atualiza a interface
+        }
+    }).catch(error => {
+        console.error('Erro ao confirmar a exclusão:', error);
+    });
+}
