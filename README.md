@@ -42,6 +42,7 @@
       <br>JavaScript
     </td>
     <td align="center"> <img src="https://select2.org/images/select2-logo.png" width="40" alt="Select2"/> <br>Select2 </td>
+    
   </tr>
 </table>
 
