@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>libris</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+
+        /* Container Principal */
+        #emprestar-main {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+            min-height: calc(100vh - 70px);
+        }
+
+        /* Card do Formulário */
+        .emprestar-card {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 4px 12px rgba(214, 148, 86, 0.1);
+            border: 1px solid #e8d5b5;
+        }
+
+        /* Cabeçalho do Formulário */
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 25px;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #d69456;
+        }
+
+        .form-header i {
+            font-size: 2rem;
+            color: #d69456;
+        }
+
+        .form-header h1 {
+            margin: 0;
+            color: #5a4a42;
+            font-size: 1.5rem;
+        }
+
+        /* Formulário */
+        .emprestimo-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Grupos de Campos */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: #5a4a42;
+            font-size: 0.95rem;
+        }
+
+        /* Input date */
+        .emprestimo-form input[type="date"] {
+            height: 42px;
+            border: 1px solid #d3c1a7;
+            border-radius: 8px;
+            background-color: #fefcf9;
+            font-size: 1rem;
+            color: #5a4a42;
+            transition: all 0.3s ease;
+            width: 100%;
+            padding: 0 12px;
+            appearance: none;
+        }
+
+        .emprestimo-form input[type="date"]:focus {
+            border-color: #d69456;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(214, 148, 86, 0.2);
+        }
+
+        /* Botão de Empréstimo */
+        .btn-emprestar {
+            background-color: #d69456;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-emprestar:hover {
+            background-color: #c58248;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(214, 148, 86, 0.3);
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            #emprestar-main {
+                padding: 1rem;
+            }
+            
+            .emprestar-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* ESTILOS ESPECÍFICOS PARA SELECT2 */
+        .select-duotone {
+            position: relative;
+        }
+
+
+        /* Container do Select2 */
+        .select2-container {
+            width: 100% !important;
+            margin-bottom: 5px;
+        }
+
+        /* Elemento de seleção */
+        .select2-container--default .select2-selection--single {
+            height: 42px;
+            border: 1px solid #d3c1a7 !important;
+            border-radius: 8px !important;
+            background-color: #fefcf9 !important;
+            transition: all 0.3s ease;
+        }
+
+        /* Texto selecionado */
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #5a4a42 !important;
+            line-height: 42px !important;
+            padding-left: 12px !important;
+            font-size: 0.95rem;
+        }
+
+        /* Seta padrão do Select2 (vamos esconder) */
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            display: none;
+        }
+
+        /* Dropdown aberto */
+        .select2-container--default.select2-container--open .select2-selection--single {
+            border-color: #d69456 !important;
+            box-shadow: 0 0 0 3px rgba(214, 148, 86, 0.2) !important;
+        }
+
+        /* Dropdown (opções) */
+        .select2-container--default .select2-dropdown {
+            border: 1px solid #e8d5b5 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(214, 148, 86, 0.1) !important;
+        }
+
+        /* Opções */
+        .select2-container--default .select2-results__option {
+            padding: 8px 12px !important;
+            color: #5a4a42 !important;
+        }
+
+        /* Opção selecionada */
+        .select2-container--default .select2-results__option--selected {
+            background-color: #f5e9db !important;
+        }
+
+        /* Opção hover */
+        .select2-container--default .select2-results__option--highlighted {
+            background-color: #d69456 !important;
+            color: white !important;
+        }
+
+        /* Campo de busca no dropdown */
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border: 1px solid #d3c1a7 !important;
+            border-radius: 6px !important;
+            padding: 6px 10px !important;
+        }
+
+        /* Placeholder */
+        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: #a89b8c !important;
+        }
+
+        /* Ícones Phosphor */
+        .select-duotone i {
+            padding-top: 15px;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #d69456;
+            font-size: 1.2rem;
+            z-index: 5;
+        }
+
+        /* Para o input date */
+        .form-group:has(input[type="date"]) {
+            position: relative;
+        }
+
+        .form-group:has(input[type="date"]) i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #d69456;
+            font-size: 1.2rem;
+            z-index: 1;
+        }
+
+        /* Esconde o ícone nativo do date */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: 0;
+            position: absolute;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        /* Efeito de rotação para o ícone quando o Select2 está aberto */
+/* Efeito quando o Select2 está aberto */
+.select2-container--open + .ph-duotone {
+    transform: rotate(180deg) translateY(3px) !important;
+    color: #d69456 !important;
+}
+
+/* Estado normal */
+.select-duotone .ph-duotone {
+    transition: transform 0.3s ease;
+    
+}
+.data-info {
+    font-size: 0.9rem;
+    color: #7a6b5d;
+    margin-top: 8px;
+    display: flex;
+    gap: 5px;
+}
+
+.data-info span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <main id="emprestar-main" class="main-container">
+        <section class="emprestar-card">
+            <header class="form-header">
+                <i class="ph-duotone ph-book-open"></i>
+                <h1>Registrar Empréstimo</h1>
+            </header>
+    
+            <form id="form-emprestimo" class="emprestimo-form">
+                <div class="form-group">
+                    <div class="select-duotone">
+                        <label for="select-usuario">Selecionar Usuário</label>
+                        <select id="select-usuario" required>
+                            <option value="" disabled selected>Selecione um usuário</option>
+                        </select>
+                        <i class="ph-duotone ph-caret-down"></i>
+                    </div>
+                </div>
+    
+                <div class="form-group">
+                    <div class="select-duotone">
+                        <label for="select-livro">Selecionar Livro</label>
+                        <select id="select-livro" required>
+                            <option value="" disabled selected>Selecione um livro</option>
+                        </select>
+                        <i class="ph-duotone ph-caret-down"></i>
+                    </div>
+                </div>
+    
+                <div class="form-group">
+                    <div class="select-duotone">
+                        <label for="data-emprestimo">Data de Empréstimo</label>
+                        <input type="date" id="data-emprestimo" required>
+                        <i class="ph-duotone ph-calendar-dots"></i>
+                    </div>
+                </div>
+    
+                <button type="submit" class="btn-emprestar">Emprestar</button>
+            </form>
+        </section>
+    </main>
+
+    <main id="devolver-main" class="main-container">
+        <div class="devolucao-container">
+            <div class="devolucao-header">
+                <h1><i class="ph-duotone ph-arrow-counter-clockwise"></i> Devolução de Livros</h1>
+                <div class="search-container">
+                    <i class="ph-duotone ph-magnifying-glass"></i>
+                    <input type="text" id="searchDevolucao" placeholder="Pesquisar por nome ou matrícula...">
+                </div>
+            </div>
+    
+            <div class="emprestimos-list-container">
+                <div class="separa">
+                    <ul id="lista-emprestimos-ativos">
+                        <!-- Itens serão inseridos aqui pelo JavaScript -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="renderer.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Inicializa Select2 com tradução para português
+            $('select').select2({
+                placeholder: "Selecione uma opção",
+                allowClear: false,
+                language: "pt-BR",
+                minimumResultsForSearch: 1 // Sempre mostrar a busca
+            });
+
+            // Corrige o posicionamento do dropdown
+            $('.select2-container').css('z-index', 'auto');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>libris</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    <div id="navbar-container"></div>
+
+    <main id="emprestimos-main" class="emprestimos-container">
+        <!-- Coluna esquerda -->
+        <section class="emprestimos-section">
+            <div class="tits">
+                <i class="ph-duotone ph-books"></i>
+                <h2>Todos os Empréstimos</h2>
+            </div>
+            
+            <!-- Barra de Busca -->
+            <input type="text" id="searchInput" placeholder="Buscar empréstimo..." onkeyup="filtrarEmprestimos()" class="search-bar"/>
+
+            <div class="emprestimos-list" id="todos-emprestimos">
+                <!-- Cards de empréstimos vão ser inseridos aqui -->
+            </div>
+        </section>
+
+        <!-- Coluna direita -->
+        <section class="emprestimos-section atrasados">
+            <div class="tits">
+                <i class="ph-duotone ph-warning-diamond"></i>
+                <h2>Empréstimos em Atraso</h2>
+            </div>
+            <input type="text" id="searchInputo" placeholder="Buscar empréstimo atrasado..." onkeyup="filtrarEmprestimosAtrasados()" class="search-bar"/>
+            <div class="emprestimos-list" id="emprestimos-atrasados-lista">
+                <!-- Cards de empréstimos atrasados aqui -->
+            </div>
+        </section>
+    </main>
+
+
+    <main id="usuarios-main" class="usuarios-container">
+        <!-- Coluna esquerda -->
+        <div class="usuarios-list-container">
+            <input type="text" id="searchUsuario" oninput="filtrarUsuarios()" placeholder="Pesquisar usuários..." class="search-input">
+            <ul id="lista-usuarios" class="usuarios-list"></ul>
+        </div>
+        
+        <!-- Detalhes do Usuário -->
+        <div class="usuario-details-container">
+            <h2>Detalhes do Usuário</h2>
+            <p><strong>Matrícula:</strong> <span id="det-matricula"></span></p>
+            <p><strong>Nome:</strong> <span id="det-nome"></span></p>
+            <p><strong>Curso:</strong> <span id="det-curso"></span></p>
+            <p><strong>Telefone:</strong> <span id="det-telefone"></span></p>
+            <p><strong>Email:</strong> <span id="det-email"></span></p>
+        </div>
+    </main>
+
+    <main id="livros-main" class="livros-container">
+        <!-- Coluna esquerda -->
+        <div class="livros-list-container">
+            <input type="text" id="searchLivro" oninput="filtrarLivros()" placeholder="Pesquisar livros..." class="search-input">
+            <ul id="lista-livros"></ul>
+          </div>
+        
+          <!-- Detalhes do Livro -->
+          <div class="livro-details-container">
+            <h2>Detalhes do Livro</h2>
+            <p><strong>Código:</strong> <span id="det-id_livro"></span></p>
+            <p><strong>Título:</strong> <span id="det-titulo"></span></p>
+            <p><strong>Autor:</strong> <span id="det-autor"></span></p>
+            <p><strong>Categoria:</strong> <span id="det-id_categoria"></span></p>
+            <p><strong>ISBN:</strong> <span id="det-isbn"></span></p>
+            <p><strong>Ano:</strong> <span id="det-ano_publicado"></span></p>
+            <p><strong>Disponibilidade:</strong> <span id="det-disponibilidade"></span></p>
+          </div>
+        </div>
+    </main>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

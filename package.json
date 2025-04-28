@@ -1,0 +1,31 @@
+{
+  "name": "libris",
+  "version": "1.0.0",
+  "description": "gerenciamento de biblioteca",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "JoaoJ, Pedro, Matt",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^35.2.1",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "jquery": "^3.7.1",
+    "select2": "^4.1.0-rc.0"
+  },
+  "build": {
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": "nsis",
+      "asar": true
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": true
+    }
+  }
+}

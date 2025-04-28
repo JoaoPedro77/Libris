@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Libris - Menu Principal</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="main-container">
+    <div class="left-panel">
+      <!-- Seção de Cadastros -->
+      <section class="card">
+        <h2>Cadastros</h2>
+        <div class="button-group">
+          <button class="btn-cadastro" onclick="goTo('cadastro.html?tipo=usuario')">
+            <i class="ph-duotone ph-user-circle"></i> Usuário
+          </button>
+          <button class="btn-cadastro" onclick="goTo('cadastro.html?tipo=livro')">
+            <i class="ph-duotone ph-book-open"></i> Livros
+          </button>
+          <button class="btn-cadastro" onclick="goTo('cadastro.html?tipo=bibliotecario')">
+            <i class="ph-duotone ph-user-gear"></i> Bibliotecários
+          </button>
+        </div>
+      </section>
+
+      <!-- Seção de Consultas -->
+      <section class="card">
+        <h2>Consultas</h2>
+        <div class="button-group">
+          <button class="btn-consulta" onclick="goTo('consulta.html?tipo=livros')">
+            <i class="ph-duotone ph-magnifying-glass"></i> Livros
+          </button>
+          <button class="btn-consulta" onclick="goTo('consulta.html?tipo=usuarios')">
+            <i class="ph-duotone ph-users"></i> Usuários
+          </button>
+          <button class="btn-consulta" onclick="goTo('consulta.html?tipo=emprestimos')">
+            <i class="ph-duotone ph-list-checks"></i> Empréstimos
+          </button>
+        </div>
+      </section>
+
+      <!-- Seção de Empréstimos -->
+      <section class="card">
+        <h2>Empréstimos</h2>
+        <div class="button-group">
+          <button class="btn-emprestimo" onclick="goTo('emprestimo.html?tipo=emprestar')">
+            <i class="ph-duotone ph-book-bookmark"></i> Novo Empréstimo
+          </button>
+          <button class="btn-emprestimo" onclick="goTo('emprestimo.html?tipo=devolver')">
+            <i class="ph-duotone ph-arrow-counter-clockwise"></i> Devolução
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Painel direito com informações -->
+    <div class="right-panel">
+      <div class="card info-card">
+        <h3>Estatísticas</h3><br>
+      
+        <p><i class="ph-duotone ph-book"></i> Total de livros: <span id="total-livros">0</span></p>
+        <p><i class="ph-duotone ph-users-three"></i> Total de usuários: <span id="total-usuarios">0</span></p>
+        <p><i class="ph-duotone ph-clock-countdown"></i> Empréstimos ativos: <span id="emprestimos-ativos">0</span></p>
+        <p><i class="ph-duotone ph-warning"></i> Empréstimos em atraso: <span id="emprestimos-atrasados">0</span></p>
+      
+        <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ccc;">
+      
+        <h4>Livros por categoria</h4><br>
+        <div class="categoria-scroll">
+          <p><i class="ph-duotone ph-atom"></i> Física: <span id="cat-fisica">0</span></p>
+          <p><i class="ph-duotone ph-flask"></i> Química: <span id="cat-quimica">0</span></p>
+          <p><i class="ph-duotone ph-dna"></i> Biologia: <span id="cat-biologia">0</span></p>
+          <p><i class="ph-duotone ph-function"></i> Matemática: <span id="cat-matematica">0</span></p>
+          <p><i class="ph-duotone ph-books"></i> Literatura: <span id="cat-literatura">0</span></p>
+          <p><i class="ph-duotone ph-text-aa"></i> Português: <span id="cat-portugues">0</span></p>
+          <p><i class="ph-duotone ph-translate"></i> Inglês: <span id="cat-ingles">0</span></p>
+          <p><i class="ph-duotone ph-globe-hemisphere-west"></i> Geografia: <span id="cat-geografia">0</span></p>
+          <p><i class="ph-duotone ph-buildings"></i> História: <span id="cat-historia">0</span></p>
+          <p><i class="ph-duotone ph-bank"></i> Filosofia: <span id="cat-filosofia">0</span></p>
+          <p><i class="ph-duotone ph-scales"></i> Sociologia: <span id="cat-sociologia">0</span></p>
+          <p><i class="ph-duotone ph-cpu"></i> Tecnologia e Computação: <span id="cat-tecnologia">0</span></p>
+          <p><i class="ph-duotone ph-wrench"></i> Técnicos/Profissionalizantes: <span id="cat-tecnicos">0</span></p>
+          <p><i class="ph-duotone ph-newspaper"></i> Revistas: <span id="cat-revistas">0</span></p>
+          <p><i class="ph-duotone ph-brain"></i> Projeto de Vida: <span id="cat-projetovida">0</span></p>
+          <p><i class="ph-duotone ph-basketball"></i> Educação Física: <span id="cat-educacaofisica">0</span></p>
+          <p><i class="ph-duotone ph-palette"></i> Artes: <span id="cat-artes">0</span></p>
+
+        </div>
+      </div>
+      
+  </div>
+
+  <script src="preload.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
