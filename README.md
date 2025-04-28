@@ -41,15 +41,9 @@
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" width="40" alt="JavaScript"/>
       <br>JavaScript
     </td>
+    <td align="center"> <img src="https://select2.org/images/select2-logo.png" width="40" alt="Select2"/> <br>Select2 </td>
   </tr>
 </table>
-
-
-### adendo
-```diff
-+ Select2 para campos de seleção avançados
-```
-
 
 ## 🔧 Instalação e Execução
 
