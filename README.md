@@ -61,7 +61,7 @@ npm start
 
 ## 📌 Próximos Passos
 
-- [ ] implementar um banco de dados
+- [ ] não sabemos mais
 
 ## 🤝 Como Contribuir
 
