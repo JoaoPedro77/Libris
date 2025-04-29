@@ -1,5 +1,18 @@
 const { app, BrowserWindow, ipcMain, dialog  } = require('electron');
+const mysql = require('mysql2/promise');
 const path = require('path');
+
+const dbConfig = {
+  host: 'localhost',      // ou seu endereço de servidor MySQL
+  user: 'root',           // seu usuário MySQL
+  password: 'root',           // sua senha MySQL
+  database: 'biblioteca'  // nome do banco de dados
+};
+
+async function createConnection() {
+  return await mysql.createConnection(dbConfig);
+}
+
 
 function createWindow () {
   const win = new BrowserWindow({
@@ -55,9 +68,11 @@ function createWindow () {
       const result = await dialog.showMessageBox({
           type: 'question',
           buttons: ['Sim', 'Não'],
+          frame:false,
           title: options.title,
           message: options.message,
           detail: options.detail
+          
       });
       return result.response === 0;
   });
@@ -97,12 +112,316 @@ function createWindow () {
 
 }
 
-app.whenReady().then(() => {
-  createWindow();
 
-  app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
+//handels de banco de daodos:
+ipcMain.handle('login', async (event, { login, senha }) => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query(
+          'SELECT * FROM bibliotecarios WHERE login = ? AND senha = ?', 
+          [login, senha]
+      );
+      return rows.length > 0 ? rows[0] : null;
+  } finally {
+      await conn.end();
+  }
+});
+
+// Handlers de Livros
+ipcMain.handle('get-livros', async () => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query('SELECT * FROM livros');
+      return rows;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('get-livro-by-id', async (event, id) => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query('SELECT * FROM livros WHERE id_livro = ?', [id]);
+      return rows[0];
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('add-livro', async (event, livro) => {
+  const conn = await createConnection();
+  try {
+      const [result] = await conn.query('INSERT INTO livros SET ?', livro);
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('update-livro', async (event, id, livro) => {
+  const conn = await createConnection();
+  try {
+      const [result] = await conn.query('UPDATE livros SET ? WHERE id_livro = ?', [livro, id]);
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('delete-livro', async (event, id) => {
+  const conn = await createConnection();
+  try {
+      const [result] = await conn.query('DELETE FROM livros WHERE id_livro = ?', [id]);
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('get-livros-disponiveis', async () => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query(
+          'SELECT * FROM livros WHERE disponibilidade = "Disponível"'
+      );
+      return rows;
+  } finally {
+      await conn.end();
+  }
+});
+
+// Handlers de Usuários
+ipcMain.handle('get-usuarios', async () => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query('SELECT * FROM usuarios');
+      return rows;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('get-usuario-by-matricula', async (event, matricula) => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query('SELECT * FROM usuarios WHERE matricula = ?', [matricula]);
+      return rows[0];
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('add-usuario', async (event, usuario) => {
+  const conn = await createConnection();
+  try {
+      const [result] = await conn.query('INSERT INTO usuarios SET ?', usuario);
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('update-usuario', async (event, matricula, usuario) => {
+  const conn = await createConnection();
+  try {
+      const [result] = await conn.query('UPDATE usuarios SET ? WHERE matricula = ?', [usuario, matricula]);
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('delete-usuario', async (event, matricula) => {
+  const conn = await createConnection();
+  try {
+      const [result] = await conn.query('DELETE FROM usuarios WHERE matricula = ?', [matricula]);
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+// Handlers de Empréstimos
+ipcMain.handle('get-emprestimos', async () => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query('SELECT * FROM emprestimos');
+      return rows;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('get-emprestimos-ativos', async () => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query(
+          'SELECT * FROM emprestimos WHERE status IN ("ativo", "atrasado")'
+      );
+      return rows;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('get-emprestimo-by-id', async (event, id) => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query('SELECT * FROM emprestimos WHERE id = ?', [id]);
+      return rows[0];
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('add-emprestimo', async (event, emprestimo) => {
+  const conn = await createConnection();
+  try {
+      // Converte as datas para o formato MySQL
+      const emprestimoParaBanco = {
+          ...emprestimo,
+          dataEmprestimo: new Date(emprestimo.dataEmprestimo).toISOString().slice(0, 10),
+          dataDevolucao: new Date(emprestimo.dataDevolucao).toISOString().slice(0, 10)
+      };
+      
+      const [result] = await conn.query('INSERT INTO emprestimos SET ?', emprestimoParaBanco);
+      
+      // Atualiza o status do livro para "Indisponível"
+      await conn.query('UPDATE livros SET disponibilidade = "Indisponível" WHERE id_livro = ?', 
+                       [emprestimo.livro_id]);
+      
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('registrar-devolucao', async (event, id) => {
+  const conn = await createConnection();
+  try {
+      // Obtém o empréstimo para pegar o livro_id
+      const [emprestimo] = await conn.query('SELECT * FROM emprestimos WHERE id = ?', [id]);
+      
+      if (!emprestimo[0]) {
+          throw new Error('Empréstimo não encontrado');
+      }
+      
+      // Atualiza o empréstimo
+      const [result] = await conn.query(
+          'UPDATE emprestimos SET status = "devolvido", dataDevolvido = ? WHERE id = ?',
+          [new Date().toISOString().slice(0, 10), id]
+      );
+      
+      // Atualiza o livro para "Disponível"
+      await conn.query(
+          'UPDATE livros SET disponibilidade = "Disponível" WHERE id_livro = ?',
+          [emprestimo[0].livro_id]
+      );
+      
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('extenderPrazoEmprestimo', async (event, id, novaData) => {
+  console.log('Recebido no backend - ID:', id, 'Tipo:', typeof id);
+  console.log('Nova data:', novaData);
+  
+  const conn = await createConnection();
+  try {
+      const [result] = await conn.query(
+          'UPDATE emprestimos SET dataDevolucao = ?, status = "ativo", multa = 0 WHERE id = ?',
+          [novaData, id]
+      );
+      
+      console.log('Resultado da query:', result);
+      
+      if (result.affectedRows === 0) {
+          console.log('Nenhuma linha afetada - ID provavelmente não existe');
+          return { success: false, error: 'Nenhum empréstimo encontrado com o ID fornecido' };
+      }
+      
+      return { success: true, affectedRows: result.affectedRows };
+  } catch (error) {
+      console.error('Erro no handler:', error);
+      return { success: false, error: error.message };
+  } finally {
+      await conn.end();
+  }
+});
+
+// Handlers de Bibliotecários
+ipcMain.handle('get-bibliotecarios', async () => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query('SELECT * FROM bibliotecarios');
+      return rows;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('get-bibliotecario-by-login', async (event, login) => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query('SELECT * FROM bibliotecarios WHERE login = ?', [login]);
+      return rows[0];
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('add-bibliotecario', async (event, bibliotecario) => {
+  const conn = await createConnection();
+  try {
+      const [result] = await conn.query('INSERT INTO bibliotecarios SET ?', bibliotecario);
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+ipcMain.handle('delete-bibliotecario', async (event, matricula) => {
+  const conn = await createConnection();
+  try {
+      const [result] = await conn.query('DELETE FROM bibliotecarios WHERE matricula = ?', [matricula]);
+      return result;
+  } finally {
+      await conn.end();
+  }
+});
+
+// Handlers de Categorias
+ipcMain.handle('get-categorias', async () => {
+  const conn = await createConnection();
+  try {
+      const [rows] = await conn.query('SELECT * FROM categorias');
+      // Transforma o array de categorias em um objeto de mapeamento
+      const categoriasMap = {};
+      rows.forEach(categoria => {
+          categoriasMap[categoria.id_categoria] = categoria.nome;
+      });
+      return categoriasMap;
+  } finally {
+      await conn.end();
+  }
+});
+
+
+
+
+
+app.whenReady().then(async () => {
+  try {
+      const conn = await createConnection();
+      await conn.end();
+      createWindow();
+  } catch (error) {
+      console.error('Falha ao conectar ao banco de dados:', error);
+      dialog.showErrorBox('Erro de Banco de Dados', 'Não foi possível conectar ao banco de dados. Verifique se o MySQL está rodando.');
+      app.quit();
+  }
 });
 
 app.on('window-all-closed', function () {
