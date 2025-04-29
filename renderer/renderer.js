@@ -315,6 +315,20 @@ function setupEmprestimoForm() {
             // Calcular data de devolução (14 dias depois)
             const dataDevolucao = new Date(dataEmprestimo);
             dataDevolucao.setDate(dataEmprestimo.getDate() + 14);
+            
+            // Verificar se já está atrasado (data de empréstimo é no passado)
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0); // Remove a hora para comparar apenas datas
+            
+            let status = "ativo";
+            let multa = 0;
+            
+            // Se a data de devolução já passou, marca como atrasado e calcula multa
+            if (hoje > dataDevolucao) {
+                status = "atrasado";
+                const diasAtraso = Math.floor((hoje - dataDevolucao) / (1000 * 60 * 60 * 24));
+                multa = diasAtraso * 1; // R$ 1 por dia de atraso
+            }
     
             // Criar objeto do empréstimo
             const novoEmprestimo = {
@@ -325,8 +339,8 @@ function setupEmprestimoForm() {
                 dataEmprestimo: formatarData(dataEmprestimo),
                 dataDevolucao: formatarData(dataDevolucao),
                 dataDevolvido: null,
-                multa: 0,
-                status: "ativo"
+                multa: multa,
+                status: status
             };
     
             // Confirmar com o usuário antes de registrar
@@ -365,7 +379,6 @@ function setupEmprestimoForm() {
         });
     }
 }
-
 /**
  * Configura o formulário de livro
  */
@@ -838,9 +851,16 @@ async function carregarEmprestimosParaDevolucao() {
     const listaEmprestimos = document.getElementById('lista-emprestimos-ativos');
     if (!listaEmprestimos) return;
 
+    // Recarrega os dados do banco antes de exibir
     await carregarDadosDoBanco();
+    
+    // Atualiza os status dos empréstimos antes de filtrar
+    atualizarStatusEmprestimos();
+    
+    // Limpa a lista
     listaEmprestimos.innerHTML = '';
 
+    // Filtra apenas empréstimos ativos ou atrasados
     const emprestimosAtivos = lista_emprestimos.filter(e => 
         e.status === 'ativo' || e.status === 'atrasado'
     );
@@ -850,30 +870,34 @@ async function carregarEmprestimosParaDevolucao() {
         return;
     }
 
+    // Ordena para mostrar os atrasados primeiro
+    emprestimosAtivos.sort((a, b) => {
+        if (a.status === 'atrasado' && b.status !== 'atrasado') return -1;
+        if (a.status !== 'atrasado' && b.status === 'atrasado') return 1;
+        return 0;
+    });
+
+    // Cria os elementos para cada empréstimo
     emprestimosAtivos.forEach(emprestimo => {
         const li = document.createElement('li');
-        li.className = 'emprestimo-item';
-        li.setAttribute('data-id', emprestimo.id);
+        li.className = `emprestimo-item ${emprestimo.status}`; // Adiciona classe com o status
         
-        // Destaque para empréstimos atrasados
-        const atrasadoClass = emprestimo.status === 'atrasado' ? 'emprestimo-atrasado' : '';
+        // Adiciona ícone de alerta para atrasados
+        const iconeStatus = emprestimo.status === 'atrasado' ? 
+            '<i class="ph-duotone ph-warning icone-status-atrasado"></i>' : '';
         
         li.innerHTML = `
-            <div class="emprestimo-info ${atrasadoClass}">
+            <div class="emprestimo-info">
                 <h3><i class="ph-duotone ph-user"></i> ${emprestimo.usuario}</h3>
                 <p><i class="ph-duotone ph-identification-card"></i> Matrícula: ${emprestimo.matricula}</p>
                 <p><i class="ph-duotone ph-book"></i> Livro: ${emprestimo.livro} (ID: ${emprestimo.livro_id})</p>
                 <div class="data-info">
                     <span><i class="ph-duotone ph-calendar-blank"></i> Empréstimo: ${emprestimo.dataEmprestimo}</span>
                     <span><i class="ph-duotone ph-calendar-check"></i> Devolução: ${emprestimo.dataDevolucao}</span>
+                    ${emprestimo.status === 'atrasado' ? 
+                      `<span class="multa-info"><i class="ph-duotone ph-warning"></i> Multa: R$ ${(emprestimo.multa || 0).toFixed(2)}</span>` : ''}
                 </div>
-                ${emprestimo.status === 'atrasado' ? `
-                <div class="multa-info">
-                    <i class="ph-duotone ph-warning"></i>
-                    <span>Multa acumulada: R$ ${emprestimo.multa.toFixed(2)}</span>
-                    <small>(${Math.floor(emprestimo.multa)} dias de atraso)</small>
-                </div>
-                ` : ''}
+                
             </div>
             <div class="emprestimo-actions">
                 <button class="btn-devolver" data-id="${emprestimo.id}">
@@ -888,7 +912,7 @@ async function carregarEmprestimosParaDevolucao() {
         listaEmprestimos.appendChild(li);
     });
 
-    // Adiciona os event listeners
+    // Adiciona event listeners
     document.querySelectorAll('.btn-devolver').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -919,23 +943,32 @@ function atualizarStatusEmprestimos() {
     hoje.setHours(0, 0, 0, 0);
 
     lista_emprestimos.forEach(emprestimo => {
+        // Se já foi devolvido, mantém o status
         if (emprestimo.status === 'devolvido') return;
 
         const dataDevolucao = parseData(emprestimo.dataDevolucao);
         
         if (emprestimo.dataDevolvido) {
+            // Se tem data de devolvido, marca como devolvido
             emprestimo.status = 'devolvido';
         } else if (hoje > dataDevolucao) {
+            // Se a data de devolução já passou, marca como atrasado
             emprestimo.status = 'atrasado';
             // Calcula multa (R$ 1 por dia de atraso)
             const diasAtraso = Math.floor((hoje - dataDevolucao) / (1000 * 60 * 60 * 24));
             emprestimo.multa = diasAtraso * 1;
+            
+            // Atualiza no banco de dados também
+            window.electronAPI.updateEmprestimo(emprestimo.id, {
+                status: 'atrasado',
+                multa: emprestimo.multa
+            });
         } else {
+            // Caso contrário, mantém como ativo
             emprestimo.status = 'ativo';
+            emprestimo.multa = 0;
         }
     });
-
-    salvarEmprestimos();
 }
 
 /**
