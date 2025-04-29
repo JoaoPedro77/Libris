@@ -158,6 +158,23 @@ ipcMain.handle('add-livro', async (event, livro) => {
   }
 });
 
+// No arquivo main do Electron
+ipcMain.handle('update-emprestimo', async (event, id, updates) => {
+  try {
+      const result = await db.run(
+          `UPDATE emprestimos SET 
+              status = ?, 
+              multa = ?,
+              dataDevolvido = ?
+           WHERE id = ?`,
+          [updates.status, updates.multa, updates.dataDevolvido, id]
+      );
+      return { success: true };
+  } catch (error) {
+      return { success: false, error: error.message };
+  }
+});
+
 ipcMain.handle('update-livro', async (event, id, livro) => {
   const conn = await createConnection();
   try {

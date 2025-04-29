@@ -838,13 +838,9 @@ async function carregarEmprestimosParaDevolucao() {
     const listaEmprestimos = document.getElementById('lista-emprestimos-ativos');
     if (!listaEmprestimos) return;
 
-    // Recarrega os dados do banco antes de exibir
     await carregarDadosDoBanco();
-    
-    // Limpa a lista
     listaEmprestimos.innerHTML = '';
 
-    // Filtra apenas empréstimos ativos ou atrasados
     const emprestimosAtivos = lista_emprestimos.filter(e => 
         e.status === 'ativo' || e.status === 'atrasado'
     );
@@ -854,23 +850,30 @@ async function carregarEmprestimosParaDevolucao() {
         return;
     }
 
-    // Cria os elementos para cada empréstimo
     emprestimosAtivos.forEach(emprestimo => {
         const li = document.createElement('li');
         li.className = 'emprestimo-item';
         li.setAttribute('data-id', emprestimo.id);
         
+        // Destaque para empréstimos atrasados
+        const atrasadoClass = emprestimo.status === 'atrasado' ? 'emprestimo-atrasado' : '';
+        
         li.innerHTML = `
-            <div class="emprestimo-info">
+            <div class="emprestimo-info ${atrasadoClass}">
                 <h3><i class="ph-duotone ph-user"></i> ${emprestimo.usuario}</h3>
                 <p><i class="ph-duotone ph-identification-card"></i> Matrícula: ${emprestimo.matricula}</p>
                 <p><i class="ph-duotone ph-book"></i> Livro: ${emprestimo.livro} (ID: ${emprestimo.livro_id})</p>
                 <div class="data-info">
                     <span><i class="ph-duotone ph-calendar-blank"></i> Empréstimo: ${emprestimo.dataEmprestimo}</span>
                     <span><i class="ph-duotone ph-calendar-check"></i> Devolução: ${emprestimo.dataDevolucao}</span>
-                    ${emprestimo.status === 'atrasado' ? 
-                      `<span><i class="ph-duotone ph-warning"></i> Multa: R$ ${(emprestimo.multa || 0).toFixed(2)}</span>` : ''}
                 </div>
+                ${emprestimo.status === 'atrasado' ? `
+                <div class="multa-info">
+                    <i class="ph-duotone ph-warning"></i>
+                    <span>Multa acumulada: R$ ${emprestimo.multa.toFixed(2)}</span>
+                    <small>(${Math.floor(emprestimo.multa)} dias de atraso)</small>
+                </div>
+                ` : ''}
             </div>
             <div class="emprestimo-actions">
                 <button class="btn-devolver" data-id="${emprestimo.id}">
@@ -885,7 +888,7 @@ async function carregarEmprestimosParaDevolucao() {
         listaEmprestimos.appendChild(li);
     });
 
-    // Adiciona event listeners
+    // Adiciona os event listeners
     document.querySelectorAll('.btn-devolver').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
