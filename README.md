@@ -61,7 +61,7 @@ npm start
 
 ## 📌 Próximos Passos
 
-- [ ] não sabemos mais
+- [x] implementar banco de dados MySQL
 
 ## 🤝 Como Contribuir
 
