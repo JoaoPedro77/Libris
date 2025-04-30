@@ -1143,13 +1143,34 @@ function filtrarUsuarios() {
     lista.innerHTML = '';
 
     lista_usuarios
-      .filter(usuario => usuario.nome.toLowerCase().includes(termo) || usuario.matricula.includes(termo)) // Filtra pelo nome ou matrícula
-      .forEach(usuario => {
+      .filter(usuario => usuario.nome.toLowerCase().includes(termo) || usuario.matricula.includes(termo))
+      .forEach((usuario, index) => {  // Adicionamos o parâmetro index
         const li = document.createElement('li');
+        li.classList.add('usuario-item');
+
+        // Área da esquerda (ícone + info)
+        const infoDiv = document.createElement('div');
+        infoDiv.classList.add('info-usuario');
+
         const icon = document.createElement('i');
         icon.classList.add('ph-duotone', 'ph-identification-card');
-        li.appendChild(icon);
-        li.appendChild(document.createTextNode(` ${usuario.matricula} - ${usuario.nome}`));
+        infoDiv.appendChild(icon);
+
+        const texto = document.createTextNode(` ${usuario.matricula} - ${usuario.nome}`);
+        infoDiv.appendChild(texto);
+
+        // Botão de apagar (igual ao que está em carregarUsuarios())
+        const botaoApagar = document.createElement('i');
+        botaoApagar.classList.add('ph-duotone', 'ph-trash', 'botao-apagar');
+        botaoApagar.title = 'Apagar usuário';
+
+        botaoApagar.onclick = (e) => {
+            e.stopPropagation();
+            apagarUsuario(index);
+        };
+
+        li.appendChild(infoDiv);
+        li.appendChild(botaoApagar);
         li.onclick = () => mostrarDetalhes(usuario);
         lista.appendChild(li);
       });
@@ -1164,18 +1185,38 @@ function filtrarLivros() {
     lista.innerHTML = '';
 
     lista_livros
-      .filter(livro => livro.titulo.toLowerCase().includes(termo) || livro.id_livro.includes(termo)) // Corrigido para usar lista_livros
-      .forEach(livro => {
+      .filter(livro => livro.titulo.toLowerCase().includes(termo) || livro.id_livro.includes(termo))
+      .forEach((livro, index) => {  // Adicionamos o parâmetro index
         const li = document.createElement('li');
+        li.classList.add('livro-item');
+
+        // Área da esquerda (ícone + info)
+        const infoDiv = document.createElement('div');
+        infoDiv.classList.add('info-livro');
+
         const icon = document.createElement('i');
         icon.classList.add('ph-duotone', 'ph-book');
-        li.appendChild(icon);
-        li.appendChild(document.createTextNode(` ${livro.id_livro} - ${livro.titulo}`));
+        infoDiv.appendChild(icon);
+
+        const texto = document.createTextNode(` ${livro.id_livro} - ${livro.titulo}`);
+        infoDiv.appendChild(texto);
+
+        // Botão de apagar (igual ao que está em carregarLivros())
+        const botaoApagar = document.createElement('i');
+        botaoApagar.classList.add('ph-duotone', 'ph-trash', 'botao-apagar');
+        botaoApagar.title = 'Apagar livro';
+
+        botaoApagar.onclick = (e) => {
+            e.stopPropagation();
+            apagarLivro(index);
+        };
+
+        li.appendChild(infoDiv);
+        li.appendChild(botaoApagar);
         li.onclick = () => mostrarDetalhesLivro(livro);
         lista.appendChild(li);
       });
 }
-
 /**
  * Filtra empréstimos na tela de devolução
  */
