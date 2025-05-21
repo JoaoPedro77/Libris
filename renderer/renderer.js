@@ -442,7 +442,8 @@ function setupUsuarioForm() {
                 matricula: document.getElementById("matricula").value.trim(),
                 curso: document.getElementById("curso").value.trim(),
                 telefone: document.getElementById("telefone").value.trim(),
-                email: document.getElementById("email").value.trim()
+                email: document.getElementById("email").value.trim(),
+                senha: document.getElementById("senha").value.trim()
             };
             
             try {

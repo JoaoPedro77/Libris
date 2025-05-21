@@ -238,10 +238,11 @@ ipcMain.handle('add-usuario', async (event, usuario) => {
   }
 });
 
-ipcMain.handle('update-usuario', async (event, matricula, usuario) => {
+
+ipcMain.handle('update-usuario', async (event, matricula, usuario, senha) => {
   const conn = await createConnection();
   try {
-      const [result] = await conn.query('UPDATE usuarios SET ? WHERE matricula = ?', [usuario, matricula]);
+      const [result] = await conn.query('UPDATE usuarios SET ? WHERE matricula = ?', [usuario, matricula, senha]);
       return result;
   } finally {
       await conn.end();
